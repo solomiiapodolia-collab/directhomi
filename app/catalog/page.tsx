@@ -1,256 +1,147 @@
 "use client";
 
-import { useState } from "react";
-import { Search, SlidersHorizontal, X, ChevronDown, ChevronUp } from "lucide-react";
+import { useState, useMemo } from "react";
+import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
+import { PropertyCard } from "@/components/property-card";
+import { ListingFiltersComponent } from "@/components/listing-filters";
+import { mockListings, getActiveListings } from "@/lib/mock-data";
+import type { ListingFilters } from "@/lib/types";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Grid3X3, List, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cities } from "@/lib/mock-data";
-import type { ListingFilters, ListingType, PropertyType } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
-interface ListingFiltersProps {
-  filters: ListingFilters;
-  onFiltersChange: (filters: ListingFilters) => void;
-  onSearch: (query: string) => void;
-}
+type SortOption = "newest" | "price_asc" | "price_desc" | "area_desc";
+type ViewMode = "grid" | "list";
 
-const propertyTypes = [
-  { value: "apartment", label: "Квартира" },
-  { value: "house", label: "Будинок" },
-  { value: "studio", label: "Студія" },
-  { value: "room", label: "Кімната" },
+const sortOptions: { value: SortOption; label: string }[] = [
+  { value: "newest", label: "Спочатку нові" },
+  { value: "price_asc", label: "Ціна: від низької" },
+  { value: "price_desc", label: "Ціна: від високої" },
+  { value: "area_desc", label: "Площа: від більшої" },
 ];
 
-const listingTypes = [
-  { value: "rent", label: "Оренда" },
-  { value: "sale", label: "Продаж" },
-];
-
-const bedroomOptions = ["1", "2", "3", "4+"];
-
-export function ListingFiltersComponent({ filters, onFiltersChange, onSearch }: ListingFiltersProps) {
+export default function CatalogPage() {
+  const [filters, setFilters] = useState<ListingFilters>({});
   const [searchQuery, setSearchQuery] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
-  const [localFilters, setLocalFilters] = useState<ListingFilters>(filters);
-  const [selectedBedrooms, setSelectedBedrooms] = useState<string[]>([]);
-  const [moveInDate, setMoveInDate] = useState("");
-  const [petsFilter, setPetsFilter] = useState<"all" | "yes" | "no">("all");
+  const [sortBy, setSortBy] = useState<SortOption>("newest");
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [savedListings, setSavedListings] = useState<string[]>([]);
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSearch(searchQuery);
-  };
+  const filteredListings = useMemo(() => {
+    let listings = getActiveListings();
 
-  const updateLocalFilter = <K extends keyof ListingFilters>(key: K, value: ListingFilters[K]) => {
-    setLocalFilters((prev) => ({ ...prev, [key]: value }));
-  };
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      listings = listings.filter(
+        (l) =>
+          l.title.toLowerCase().includes(query) ||
+          l.address.city.toLowerCase().includes(query) ||
+          l.address.district.toLowerCase().includes(query) ||
+          l.address.street.toLowerCase().includes(query)
+      );
+    }
 
-  const toggleBedroom = (val: string) => {
-    setSelectedBedrooms((prev) =>
-      prev.includes(val) ? prev.filter((b) => b !== val) : [...prev, val]
+    if (filters.city) listings = listings.filter((l) => l.address.city === filters.city);
+    if (filters.type) listings = listings.filter((l) => l.type === filters.type);
+    if (filters.propertyType) listings = listings.filter((l) => l.propertyType === filters.propertyType);
+    if (filters.priceMin !== undefined) listings = listings.filter((l) => l.price >= filters.priceMin!);
+    if (filters.priceMax !== undefined) listings = listings.filter((l) => l.price <= filters.priceMax!);
+    if (filters.areaMin !== undefined) listings = listings.filter((l) => l.features.area >= filters.areaMin!);
+    if (filters.areaMax !== undefined) listings = listings.filter((l) => l.features.area <= filters.areaMax!);
+    if (filters.petsAllowed) listings = listings.filter((l) => l.features.petsAllowed);
+    if (filters.verifiedOwnerOnly) listings = listings.filter((l) => l.isOwnerVerified);
+
+    switch (sortBy) {
+      case "newest": listings.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()); break;
+      case "price_asc": listings.sort((a, b) => a.price - b.price); break;
+      case "price_desc": listings.sort((a, b) => b.price - a.price); break;
+      case "area_desc": listings.sort((a, b) => b.features.area - a.features.area); break;
+    }
+
+    return listings;
+  }, [filters, searchQuery, sortBy]);
+
+  const handleSave = (id: string) => {
+    setSavedListings((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
   };
 
-  const applyFilters = () => {
-    const updatedFilters = { ...localFilters };
-    if (petsFilter === "yes") updatedFilters.petsAllowed = true;
-    else if (petsFilter === "no") updatedFilters.petsAllowed = false;
-    onFiltersChange(updatedFilters);
-    setIsOpen(false);
-  };
-
-  const clearFilters = () => {
-    const emptyFilters: ListingFilters = {};
-    setLocalFilters(emptyFilters);
-    setSelectedBedrooms([]);
-    setMoveInDate("");
-    setPetsFilter("all");
-    onFiltersChange(emptyFilters);
-  };
-
-  const activeFiltersCount =
-    Object.values(filters).filter((v) => v !== undefined && v !== "").length +
-    selectedBedrooms.length +
-    (moveInDate ? 1 : 0) +
-    (petsFilter !== "all" ? 1 : 0);
-
-  const btnClass = (active: boolean) =>
-    `flex-1 rounded-lg border py-2 text-sm font-medium transition-colors ${
-      active
-        ? "border-primary bg-primary text-primary-foreground"
-        : "border-border hover:border-primary hover:text-primary"
-    }`;
-
   return (
-    <div className="space-y-4">
-      <form onSubmit={handleSearchSubmit} className="flex gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Пошук за назвою або адресою..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-lg border border-border bg-background pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-        </div>
-        <button
-          type="button"
-          onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium hover:border-primary hover:text-primary transition-colors"
-        >
-          <SlidersHorizontal className="h-4 w-4" />
-          <span className="hidden sm:inline">Фільтри</span>
-          {activeFiltersCount > 0 && (
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
-              {activeFiltersCount}
-            </span>
-          )}
-          {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-        </button>
-      </form>
+    <div className="flex min-h-screen flex-col">
+      <SiteHeader />
+      <main className="flex-1">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold">Каталог оголошень</h1>
+            <p className="mt-2 text-muted-foreground">
+              Знайдіть ідеальне житло серед {mockListings.filter((l) => l.status === "active").length} активних оголошень
+            </p>
+          </div>
 
-      {isOpen && (
-        <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">🏙 Місто</label>
-              <select
-                value={localFilters.city || ""}
-                onChange={(e) => updateLocalFilter("city", e.target.value || undefined)}
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-              >
-                <option value="">Всі міста</option>
-                {cities.map((city) => (
-                  <option key={city} value={city}>{city}</option>
-                ))}
-              </select>
-            </div>
+          <div className="mb-6">
+            <ListingFiltersComponent
+              filters={filters}
+              onFiltersChange={setFilters}
+              onSearch={setSearchQuery}
+            />
+          </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">🏷 Тип угоди</label>
-              <div className="flex gap-2">
-                {listingTypes.map((type) => (
-                  <button key={type.value} type="button"
-                    onClick={() => updateLocalFilter("type", localFilters.type === type.value ? undefined : type.value as ListingType)}
-                    className={btnClass(localFilters.type === type.value)}>
-                    {type.label}
-                  </button>
-                ))}
+          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-muted-foreground">
+              Знайдено: <span className="font-medium text-foreground">{filteredListings.length}</span> оголошень
+            </p>
+            <div className="flex items-center gap-4">
+              <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {sortOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <div className="hidden items-center gap-1 rounded-md border border-border p-1 sm:flex">
+                <Button variant={viewMode === "grid" ? "secondary" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setViewMode("grid")}>
+                  <LayoutGrid className="h-4 w-4" />
+                </Button>
+                <Button variant={viewMode === "list" ? "secondary" : "ghost"} size="icon" className="h-8 w-8" onClick={() => setViewMode("list")}>
+                  <List className="h-4 w-4" />
+                </Button>
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">🏠 Тип нерухомості</label>
-              <div className="grid grid-cols-2 gap-2">
-                {propertyTypes.map((type) => (
-                  <button key={type.value} type="button"
-                    onClick={() => updateLocalFilter("propertyType", localFilters.propertyType === type.value ? undefined : type.value as PropertyType)}
-                    className={btnClass(localFilters.propertyType === type.value)}>
-                    {type.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">💰 Бюджет (грн)</label>
-              <div className="flex items-center gap-2">
-                <input type="number" placeholder="Від" value={localFilters.priceMin || ""}
-                  onChange={(e) => updateLocalFilter("priceMin", e.target.value ? parseInt(e.target.value) : undefined)}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" />
-                <span className="text-muted-foreground">—</span>
-                <input type="number" placeholder="До" value={localFilters.priceMax || ""}
-                  onChange={(e) => updateLocalFilter("priceMax", e.target.value ? parseInt(e.target.value) : undefined)}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">📐 Площа (м²)</label>
-              <div className="flex items-center gap-2">
-                <input type="number" placeholder="Від" value={localFilters.areaMin || ""}
-                  onChange={(e) => updateLocalFilter("areaMin", e.target.value ? parseInt(e.target.value) : undefined)}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" />
-                <span className="text-muted-foreground">—</span>
-                <input type="number" placeholder="До" value={localFilters.areaMax || ""}
-                  onChange={(e) => updateLocalFilter("areaMax", e.target.value ? parseInt(e.target.value) : undefined)}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">🛏 Кількість кімнат</label>
-              <div className="flex gap-2">
-                {bedroomOptions.map((opt) => (
-                  <button key={opt} type="button" onClick={() => toggleBedroom(opt)}
-                    className={btnClass(selectedBedrooms.includes(opt))}>
-                    {opt}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">🐾 Тварини</label>
-              <div className="flex gap-2">
-                {[{ value: "all", label: "Всі" }, { value: "yes", label: "✅ Так" }, { value: "no", label: "❌ Ні" }].map((opt) => (
-                  <button key={opt.value} type="button"
-                    onClick={() => setPetsFilter(opt.value as "all" | "yes" | "no")}
-                    className={btnClass(petsFilter === opt.value)}>
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">📅 Дата заїзду</label>
-              <input type="date" value={moveInDate} onChange={(e) => setMoveInDate(e.target.value)}
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" />
-            </div>
-
-            <div className="flex items-center gap-3 rounded-lg border border-border p-3 self-end">
-              <input type="checkbox" id="verifiedOwnerOnly"
-                checked={localFilters.verifiedOwnerOnly || false}
-                onChange={(e) => updateLocalFilter("verifiedOwnerOnly", e.target.checked ? true : undefined)}
-                className="h-4 w-4 cursor-pointer" />
-              <label htmlFor="verifiedOwnerOnly" className="text-sm font-medium cursor-pointer">
-                ✅ Тільки верифіковані власники
-              </label>
             </div>
           </div>
 
-          <div className="mt-6 flex gap-3 justify-end">
-            <Button variant="outline" onClick={clearFilters}>
-              <X className="mr-2 h-4 w-4" />Скинути
-            </Button>
-            <Button onClick={applyFilters}>Застосувати фільтри</Button>
-          </div>
+          {filteredListings.length > 0 ? (
+            <div className={cn("grid gap-6", viewMode === "grid" ? "sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1")}>
+              {filteredListings.map((listing) => (
+                <PropertyCard key={listing.id} listing={listing} onSave={handleSave} isSaved={savedListings.includes(listing.id)} />
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <Grid3X3 className="h-16 w-16 text-muted-foreground/50" />
+              <h3 className="mt-4 text-lg font-medium">Оголошень не знайдено</h3>
+              <p className="mt-2 text-sm text-muted-foreground">Спробуйте змінити параметри пошуку або скинути фільтри</p>
+              <Button variant="outline" className="mt-4" onClick={() => { setFilters({}); setSearchQuery(""); }}>
+                Скинути фільтри
+              </Button>
+            </div>
+          )}
         </div>
-      )}
-
-      {activeFiltersCount > 0 && (
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm text-muted-foreground">Активні фільтри:</span>
-          {filters.city && (
-            <Button variant="secondary" size="sm" onClick={() => onFiltersChange({ ...filters, city: undefined })} className="h-7 gap-1 text-xs">
-              {filters.city} <X className="h-3 w-3" />
-            </Button>
-          )}
-          {filters.type && (
-            <Button variant="secondary" size="sm" onClick={() => onFiltersChange({ ...filters, type: undefined })} className="h-7 gap-1 text-xs">
-              {filters.type === "rent" ? "Оренда" : "Продаж"} <X className="h-3 w-3" />
-            </Button>
-          )}
-          {filters.verifiedOwnerOnly && (
-            <Button variant="secondary" size="sm" onClick={() => onFiltersChange({ ...filters, verifiedOwnerOnly: undefined })} className="h-7 gap-1 text-xs">
-              Верифіковані <X className="h-3 w-3" />
-            </Button>
-          )}
-          <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs text-muted-foreground">
-            Скинути всі
-          </Button>
-        </div>
-      )}
+      </main>
+      <SiteFooter />
     </div>
   );
 }
