@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { Home, Menu, X, User, LogOut, Settings, MessageSquare, LayoutDashboard, Shield } from "lucide-react";
@@ -30,28 +29,20 @@ export function SiteHeader() {
   const getDashboardLink = () => {
     if (!user) return "/login";
     switch (user.role) {
-      case "seeker":
-        return "/dashboard/seeker";
-      case "owner":
-        return "/dashboard/owner";
-      case "admin":
-        return "/admin";
-      default:
-        return "/login";
+      case "seeker": return "/dashboard/seeker";
+      case "owner": return "/dashboard/owner";
+      case "admin": return "/admin";
+      default: return "/login";
     }
   };
 
   const getRoleLabel = () => {
     if (!user) return "";
     switch (user.role) {
-      case "seeker":
-        return "Шукач";
-      case "owner":
-        return "Власник";
-      case "admin":
-        return "Адміністратор";
-      default:
-        return "";
+      case "seeker": return "Шукач";
+      case "owner": return "Власник";
+      case "admin": return "Адміністратор";
+      default: return "";
     }
   };
 
@@ -60,22 +51,18 @@ export function SiteHeader() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
-          <Image src="/logo.jpg" alt="DirectHomi" width={140} height={40} className="h-10 w-auto object-contain" priority />
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
+            <Home className="h-5 w-5 text-primary-foreground" />
+          </div>
+          <span className="text-xl font-bold">DirectHomi</span>
         </Link>
 
         {/* Desktop Navigation */}
         <nav className="hidden items-center gap-6 md:flex">
           {publicNavItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "text-sm font-medium transition-colors hover:text-primary",
-                pathname === item.href
-                  ? "text-primary"
-                  : "text-muted-foreground"
-              )}
-            >
+            <Link key={item.href} href={item.href}
+              className={cn("text-sm font-medium transition-colors hover:text-primary",
+                pathname === item.href ? "text-primary" : "text-muted-foreground")}>
               {item.label}
             </Link>
           ))}
@@ -83,7 +70,6 @@ export function SiteHeader() {
 
         {/* Desktop Auth/User Section */}
         <div className="hidden items-center gap-3 md:flex">
-          {/* Demo Role Switcher */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="text-xs">
@@ -91,18 +77,10 @@ export function SiteHeader() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => switchRole("guest")}>
-                Гість
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => switchRole("seeker")}>
-                Шукач (Анна Бондар)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => switchRole("owner")}>
-                Власник (Іван Петренко)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => switchRole("admin")}>
-                Адміністратор
-              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => switchRole("guest")}>Гість</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => switchRole("seeker")}>Шукач (Анна Бондар)</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => switchRole("owner")}>Власник (Іван Петренко)</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => switchRole("admin")}>Адміністратор</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -122,36 +100,31 @@ export function SiteHeader() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link href={getDashboardLink()} className="flex items-center gap-2">
-                    <LayoutDashboard className="h-4 w-4" />
-                    Кабінет
+                    <LayoutDashboard className="h-4 w-4" />Кабінет
                   </Link>
                 </DropdownMenuItem>
                 {user.role !== "admin" && (
                   <DropdownMenuItem asChild>
                     <Link href="/messages" className="flex items-center gap-2">
-                      <MessageSquare className="h-4 w-4" />
-                      Повідомлення
+                      <MessageSquare className="h-4 w-4" />Повідомлення
                     </Link>
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem asChild>
                   <Link href="/settings" className="flex items-center gap-2">
-                    <Settings className="h-4 w-4" />
-                    Налаштування
+                    <Settings className="h-4 w-4" />Налаштування
                   </Link>
                 </DropdownMenuItem>
                 {user.role === "admin" && (
                   <DropdownMenuItem asChild>
                     <Link href="/admin" className="flex items-center gap-2">
-                      <Shield className="h-4 w-4" />
-                      Панель адміна
+                      <Shield className="h-4 w-4" />Панель адміна
                     </Link>
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout} className="text-destructive">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Вийти
+                  <LogOut className="mr-2 h-4 w-4" />Вийти
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -168,16 +141,10 @@ export function SiteHeader() {
         </div>
 
         {/* Mobile Menu Button */}
-        <button
-          className="flex h-10 w-10 items-center justify-center rounded-md md:hidden"
+        <button className="flex h-10 w-10 items-center justify-center rounded-md md:hidden"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label={mobileMenuOpen ? "Закрити меню" : "Відкрити меню"}
-        >
-          {mobileMenuOpen ? (
-            <X className="h-6 w-6" />
-          ) : (
-            <Menu className="h-6 w-6" />
-          )}
+          aria-label={mobileMenuOpen ? "Закрити меню" : "Відкрити меню"}>
+          {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </div>
 
@@ -186,54 +153,36 @@ export function SiteHeader() {
         <div className="border-t border-border bg-background md:hidden">
           <nav className="flex flex-col p-4">
             {publicNavItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  pathname === item.href
-                    ? "bg-secondary text-primary"
-                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                )}
-                onClick={() => setMobileMenuOpen(false)}
-              >
+              <Link key={item.href} href={item.href}
+                className={cn("rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                  pathname === item.href ? "bg-secondary text-primary" : "text-muted-foreground hover:bg-secondary hover:text-foreground")}
+                onClick={() => setMobileMenuOpen(false)}>
                 {item.label}
               </Link>
             ))}
             <div className="my-2 border-t border-border" />
             {user ? (
               <>
-                <Link
-                  href={getDashboardLink()}
+                <Link href={getDashboardLink()}
                   className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
+                  onClick={() => setMobileMenuOpen(false)}>
                   Кабінет
                 </Link>
-                <button
-                  onClick={() => {
-                    logout();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="rounded-md px-3 py-2 text-left text-sm font-medium text-destructive hover:bg-secondary"
-                >
+                <button onClick={() => { logout(); setMobileMenuOpen(false); }}
+                  className="rounded-md px-3 py-2 text-left text-sm font-medium text-destructive hover:bg-secondary">
                   Вийти
                 </button>
               </>
             ) : (
               <>
-                <Link
-                  href="/login"
+                <Link href="/login"
                   className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
+                  onClick={() => setMobileMenuOpen(false)}>
                   Увійти
                 </Link>
-                <Link
-                  href="/register"
+                <Link href="/register"
                   className="rounded-md px-3 py-2 text-sm font-medium text-primary hover:bg-secondary"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
+                  onClick={() => setMobileMenuOpen(false)}>
                   Реєстрація
                 </Link>
               </>
