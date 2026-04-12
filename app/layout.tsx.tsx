@@ -43,6 +43,19 @@ export default function RootLayout({
         <AuthProvider>
           {children}
         </AuthProvider>
+        
+        {/* Floating Support Chat Button */}
+        <a
+          href="mailto:support@directhomi.com"
+          className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-lg hover:bg-primary/90 transition-all hover:scale-110"
+          title="Написати в підтримку"
+          aria-label="Чат підтримки"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        </a>
+
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
