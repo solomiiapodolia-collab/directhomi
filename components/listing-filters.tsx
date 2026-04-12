@@ -3,16 +3,6 @@
 import { useState } from "react";
 import { Search, SlidersHorizontal, X, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { cities } from "@/lib/mock-data";
 import type { ListingFilters, ListingType, PropertyType } from "@/lib/types";
 
@@ -54,7 +44,9 @@ export function ListingFiltersComponent({ filters, onFiltersChange, onSearch }: 
   };
 
   const toggleBedroom = (val: string) => {
-    setSelectedBedrooms((prev) => prev.includes(val) ? prev.filter((b) => b !== val) : [...prev, val]);
+    setSelectedBedrooms((prev) =>
+      prev.includes(val) ? prev.filter((b) => b !== val) : [...prev, val]
+    );
   };
 
   const applyFilters = () => {
@@ -74,27 +66,36 @@ export function ListingFiltersComponent({ filters, onFiltersChange, onSearch }: 
     onFiltersChange(emptyFilters);
   };
 
-  const activeFiltersCount = Object.values(filters).filter((v) => v !== undefined && v !== "").length
-    + selectedBedrooms.length + (moveInDate ? 1 : 0) + (petsFilter !== "all" ? 1 : 0);
+  const activeFiltersCount =
+    Object.values(filters).filter((v) => v !== undefined && v !== "").length +
+    selectedBedrooms.length +
+    (moveInDate ? 1 : 0) +
+    (petsFilter !== "all" ? 1 : 0);
+
+  const btnClass = (active: boolean) =>
+    `flex-1 rounded-lg border py-2 text-sm font-medium transition-colors ${
+      active
+        ? "border-primary bg-primary text-primary-foreground"
+        : "border-border hover:border-primary hover:text-primary"
+    }`;
 
   return (
     <div className="space-y-4">
       <form onSubmit={handleSearchSubmit} className="flex gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
+          <input
             type="text"
             placeholder="Пошук за назвою або адресою..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
+            className="w-full rounded-lg border border-border bg-background pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
-        <Button
+        <button
           type="button"
-          variant="outline"
-          className="gap-2"
           onClick={() => setIsOpen(!isOpen)}
+          className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium hover:border-primary hover:text-primary transition-colors"
         >
           <SlidersHorizontal className="h-4 w-4" />
           <span className="hidden sm:inline">Фільтри</span>
@@ -104,179 +105,120 @@ export function ListingFiltersComponent({ filters, onFiltersChange, onSearch }: 
             </span>
           )}
           {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-        </Button>
+        </button>
       </form>
 
-      {/* Filters Panel */}
       {isOpen && (
         <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-
-            {/* City */}
             <div className="space-y-2">
-              <Label>🏙 Місто</Label>
-              <Select
+              <label className="text-sm font-medium">🏙 Місто</label>
+              <select
                 value={localFilters.city || ""}
-                onValueChange={(value) => updateLocalFilter("city", value || undefined)}
+                onChange={(e) => updateLocalFilter("city", e.target.value || undefined)}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
               >
-                <SelectTrigger><SelectValue placeholder="Всі міста" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Всі міста</SelectItem>
-                  {cities.map((city) => (
-                    <SelectItem key={city} value={city}>{city}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <option value="">Всі міста</option>
+                {cities.map((city) => (
+                  <option key={city} value={city}>{city}</option>
+                ))}
+              </select>
             </div>
 
-            {/* Deal Type */}
             <div className="space-y-2">
-              <Label>🏷 Тип угоди</Label>
+              <label className="text-sm font-medium">🏷 Тип угоди</label>
               <div className="flex gap-2">
                 {listingTypes.map((type) => (
-                  <button
-                    key={type.value}
-                    type="button"
+                  <button key={type.value} type="button"
                     onClick={() => updateLocalFilter("type", localFilters.type === type.value ? undefined : type.value as ListingType)}
-                    className={`flex-1 rounded-lg border py-2 text-sm font-medium transition-colors ${
-                      localFilters.type === type.value
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border hover:border-primary hover:text-primary"
-                    }`}
-                  >
+                    className={btnClass(localFilters.type === type.value)}>
                     {type.label}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Property Type */}
             <div className="space-y-2">
-              <Label>🏠 Тип нерухомості</Label>
+              <label className="text-sm font-medium">🏠 Тип нерухомості</label>
               <div className="grid grid-cols-2 gap-2">
                 {propertyTypes.map((type) => (
-                  <button
-                    key={type.value}
-                    type="button"
+                  <button key={type.value} type="button"
                     onClick={() => updateLocalFilter("propertyType", localFilters.propertyType === type.value ? undefined : type.value as PropertyType)}
-                    className={`rounded-lg border py-2 text-sm font-medium transition-colors ${
-                      localFilters.propertyType === type.value
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border hover:border-primary hover:text-primary"
-                    }`}
-                  >
+                    className={btnClass(localFilters.propertyType === type.value)}>
                     {type.label}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Budget */}
             <div className="space-y-2">
-              <Label>💰 Бюджет (грн)</Label>
+              <label className="text-sm font-medium">💰 Бюджет (грн)</label>
               <div className="flex items-center gap-2">
-                <Input
-                  type="number"
-                  placeholder="Від"
-                  value={localFilters.priceMin || ""}
+                <input type="number" placeholder="Від" value={localFilters.priceMin || ""}
                   onChange={(e) => updateLocalFilter("priceMin", e.target.value ? parseInt(e.target.value) : undefined)}
-                />
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" />
                 <span className="text-muted-foreground">—</span>
-                <Input
-                  type="number"
-                  placeholder="До"
-                  value={localFilters.priceMax || ""}
+                <input type="number" placeholder="До" value={localFilters.priceMax || ""}
                   onChange={(e) => updateLocalFilter("priceMax", e.target.value ? parseInt(e.target.value) : undefined)}
-                />
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" />
               </div>
             </div>
 
-            {/* Area */}
             <div className="space-y-2">
-              <Label>📐 Площа (м²)</Label>
+              <label className="text-sm font-medium">📐 Площа (м²)</label>
               <div className="flex items-center gap-2">
-                <Input
-                  type="number"
-                  placeholder="Від"
-                  value={localFilters.areaMin || ""}
+                <input type="number" placeholder="Від" value={localFilters.areaMin || ""}
                   onChange={(e) => updateLocalFilter("areaMin", e.target.value ? parseInt(e.target.value) : undefined)}
-                />
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" />
                 <span className="text-muted-foreground">—</span>
-                <Input
-                  type="number"
-                  placeholder="До"
-                  value={localFilters.areaMax || ""}
+                <input type="number" placeholder="До" value={localFilters.areaMax || ""}
                   onChange={(e) => updateLocalFilter("areaMax", e.target.value ? parseInt(e.target.value) : undefined)}
-                />
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" />
               </div>
             </div>
 
-            {/* Bedrooms */}
             <div className="space-y-2">
-              <Label>🛏 Кількість кімнат</Label>
+              <label className="text-sm font-medium">🛏 Кількість кімнат</label>
               <div className="flex gap-2">
                 {bedroomOptions.map((opt) => (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => toggleBedroom(opt)}
-                    className={`flex-1 rounded-lg border py-2 text-sm font-medium transition-colors ${
-                      selectedBedrooms.includes(opt)
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border hover:border-primary hover:text-primary"
-                    }`}
-                  >
+                  <button key={opt} type="button" onClick={() => toggleBedroom(opt)}
+                    className={btnClass(selectedBedrooms.includes(opt))}>
                     {opt}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Pets */}
             <div className="space-y-2">
-              <Label>🐾 Тварини</Label>
+              <label className="text-sm font-medium">🐾 Тварини</label>
               <div className="flex gap-2">
                 {[{ value: "all", label: "Всі" }, { value: "yes", label: "✅ Так" }, { value: "no", label: "❌ Ні" }].map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
+                  <button key={opt.value} type="button"
                     onClick={() => setPetsFilter(opt.value as "all" | "yes" | "no")}
-                    className={`flex-1 rounded-lg border py-2 text-sm font-medium transition-colors ${
-                      petsFilter === opt.value
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border hover:border-primary hover:text-primary"
-                    }`}
-                  >
+                    className={btnClass(petsFilter === opt.value)}>
                     {opt.label}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Move-in Date */}
             <div className="space-y-2">
-              <Label>📅 Дата заїзду</Label>
-              <Input
-                type="date"
-                value={moveInDate}
-                onChange={(e) => setMoveInDate(e.target.value)}
-              />
+              <label className="text-sm font-medium">📅 Дата заїзду</label>
+              <input type="date" value={moveInDate} onChange={(e) => setMoveInDate(e.target.value)}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" />
             </div>
 
-            {/* Verified Only */}
-            <div className="flex items-center space-x-2 rounded-lg border border-border p-3 self-end">
-              <Checkbox
-                id="verifiedOwnerOnly"
+            <div className="flex items-center gap-3 rounded-lg border border-border p-3 self-end">
+              <input type="checkbox" id="verifiedOwnerOnly"
                 checked={localFilters.verifiedOwnerOnly || false}
-                onCheckedChange={(checked) => updateLocalFilter("verifiedOwnerOnly", checked ? true : undefined)}
-              />
+                onChange={(e) => updateLocalFilter("verifiedOwnerOnly", e.target.checked ? true : undefined)}
+                className="h-4 w-4 cursor-pointer" />
               <label htmlFor="verifiedOwnerOnly" className="text-sm font-medium cursor-pointer">
                 ✅ Тільки верифіковані власники
               </label>
             </div>
           </div>
 
-          {/* Buttons */}
           <div className="mt-6 flex gap-3 justify-end">
             <Button variant="outline" onClick={clearFilters}>
               <X className="mr-2 h-4 w-4" />Скинути
@@ -286,7 +228,6 @@ export function ListingFiltersComponent({ filters, onFiltersChange, onSearch }: 
         </div>
       )}
 
-      {/* Active filters */}
       {activeFiltersCount > 0 && (
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm text-muted-foreground">Активні фільтри:</span>
