@@ -93,13 +93,13 @@ export default function LandingPage() {
                 </p>
                 
                 <div className="flex flex-col gap-4 sm:flex-row">
-                  <Button size="lg" asChild>
+                  <Button size="lg" className="text-base font-semibold" asChild>
                     <Link href="/catalog">
                       <Search className="mr-2 h-5 w-5" />
                       Знайти житло
                     </Link>
                   </Button>
-                  <Button size="lg" variant="outline" asChild>
+                  <Button size="lg" variant="outline" className="text-base font-semibold" asChild>
                     <Link href="/register?role=owner">
                       <Home className="mr-2 h-5 w-5" />
                       Здати нерухомість
@@ -107,7 +107,6 @@ export default function LandingPage() {
                   </Button>
                 </div>
 
-                {/* Quick City Links */}
                 <div className="flex flex-wrap items-center gap-2 pt-4">
                   <span className="text-sm text-muted-foreground">Популярні міста:</span>
                   {cities.slice(0, 5).map((city) => (
@@ -122,7 +121,6 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              {/* Hero Image */}
               <div className="relative hidden lg:block">
                 <div className="relative aspect-[4/3] overflow-hidden rounded-2xl shadow-2xl">
                   <Image
@@ -133,7 +131,6 @@ export default function LandingPage() {
                     priority
                   />
                 </div>
-                {/* Floating Card */}
                 <div className="absolute -bottom-6 -left-6 rounded-xl bg-card p-4 shadow-lg">
                   <div className="flex items-center gap-3">
                     <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
@@ -164,7 +161,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Featured Listings — між статистикою та "Чому обирають" */}
+        {/* Featured Listings */}
         <section className="py-20">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between">
@@ -181,13 +178,11 @@ export default function LandingPage() {
                 </Link>
               </Button>
             </div>
-
             <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {featuredListings.map((listing) => (
                 <PropertyCard key={listing.id} listing={listing} />
               ))}
             </div>
-
             <div className="mt-8 text-center sm:hidden">
               <Button variant="outline" asChild>
                 <Link href="/catalog">
@@ -210,7 +205,6 @@ export default function LandingPage() {
                 Ми створили платформу, яка захищає інтереси обох сторін
               </p>
             </div>
-
             <div className="mt-16 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
               {features.map((feature) => (
                 <Card key={feature.title} className="border-0 bg-background">
@@ -231,16 +225,12 @@ export default function LandingPage() {
         <section className="py-20">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="text-center">
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                Як це працює
-              </h2>
+              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Як це працює</h2>
               <p className="mt-4 text-lg text-muted-foreground">
                 Простий та прозорий процес для шукачів та власників
               </p>
             </div>
-
             <div className="mt-16 grid gap-12 lg:grid-cols-2">
-              {/* For Seekers */}
               <div className="space-y-6">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
@@ -269,7 +259,6 @@ export default function LandingPage() {
                 </Button>
               </div>
 
-              {/* For Owners */}
               <div className="space-y-6">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-accent-foreground">
@@ -317,7 +306,7 @@ export default function LandingPage() {
                   Переглянути каталог
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10" asChild>
+              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary" asChild>
                 <Link href="/register">
                   Зареєструватись
                 </Link>
