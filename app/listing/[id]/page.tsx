@@ -173,7 +173,7 @@ export default function ListingDetailPage({ params }: { params: Promise<{ id: st
                     <h4 className="text-sm font-medium">📄 Шаблон договору</h4>
                     <p className="text-xs text-muted-foreground">Завантажте типовий договір оренди для підготовки до угоди</p>
                     <a href="/contract-template.pdf" download="DirectHomi-договір-оренди.pdf" className="flex w-full items-center justify-center gap-2 rounded-md border border-primary px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10">
-                      ⬇️ Завантажити шаблон договору (PDF)
+                      Завантажити шаблон договору оренди
                     </a>
                     <p className="text-xs text-muted-foreground text-center">DirectHomi не є стороною угоди. Договір укладається напряму між власником та орендарем.</p>
                   </div>
