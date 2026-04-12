@@ -306,7 +306,7 @@ export default function LandingPage() {
                   Переглянути каталог
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary" asChild>
+              <Button size="lg" className="bg-white text-primary hover:bg-white/90 font-semibold" asChild>
                 <Link href="/register">
                   Зареєструватись
                 </Link>
