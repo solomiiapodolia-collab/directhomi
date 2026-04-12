@@ -1,333 +1,259 @@
-import Link from "next/link";
+"use client";
+
+import { useState } from "react";
+import { use } from "react";
 import Image from "next/image";
-import { 
-  Search, 
-  Shield, 
-  MessageSquare, 
-  Clock, 
-  BadgeCheck, 
-  ArrowRight,
-  Home,
-  Users,
-  FileCheck,
-  TrendingUp
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import {
+  ArrowLeft, MapPin, Home, Maximize, BadgeCheck, Heart, Share2, Flag,
+  Calendar, Users, Dog, Car, Sofa, ThermometerSun,
+  Hammer, ChevronLeft, ChevronRight, Send, AlertTriangle, MessageCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { PropertyCard } from "@/components/property-card";
-import { mockListings, cities } from "@/lib/mock-data";
+import { ApplicationForm } from "@/components/application-form";
+import { getListingById, formatPrice, formatDate, mockOwners } from "@/lib/mock-data";
+import { useAuth } from "@/lib/auth-context";
+import type { ApplicationFormData } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
-const features = [
-  {
-    icon: Shield,
-    title: "Перевірені власники",
-    description: "Кожен власник проходить верифікацію: фото паспорта та селфі з документом.",
-  },
-  {
-    icon: MessageSquare,
-    title: "Прямий зв'язок",
-    description: "Спілкуйтесь напряму з власником без посередників після прийняття заявки.",
-  },
-  {
-    icon: Clock,
-    title: "Швидка відповідь",
-    description: "Власники зобов'язані відповісти на заявку протягом 72 годин.",
-  },
-  {
-    icon: FileCheck,
-    title: "Структуровані заявки",
-    description: "Зручна форма заявки з усією необхідною інформацією для власника.",
-  },
-];
-
-const stats = [
-  { value: "5000+", label: "Активних оголошень" },
-  { value: "12000+", label: "Зареєстрованих користувачів" },
-  { value: "98%", label: "Задоволених орендарів" },
-  { value: "72 год", label: "Максимум на відповідь" },
-];
-
-const howItWorks = {
-  seeker: [
-    { step: 1, title: "Знайдіть житло", description: "Перегляньте каталог та знайдіть ідеальний варіант" },
-    { step: 2, title: "Подайте заявку", description: "Заповніть структуровану форму із вашими даними" },
-    { step: 3, title: "Отримайте відповідь", description: "Власник відповість протягом 72 годин" },
-    { step: 4, title: "Спілкуйтесь напряму", description: "Після прийняття заявки відкривається чат" },
-  ],
-  owner: [
-    { step: 1, title: "Пройдіть верифікацію", description: "Підтвердіть особу фото документів" },
-    { step: 2, title: "Додайте оголошення", description: "Створіть привабливий опис з фото" },
-    { step: 3, title: "Отримуйте заявки", description: "Переглядайте структуровані заявки від шукачів" },
-    { step: 4, title: "Оберіть орендаря", description: "Прийміть заявку та почніть спілкування" },
-  ],
+const propertyTypeLabels: Record<string, string> = {
+  apartment: "Квартира", house: "Будинок", room: "Кімната", commercial: "Комерційна нерухомість",
+};
+const listingTypeLabels: Record<string, string> = { rent: "Оренда", sale: "Продаж" };
+const conditionLabels: Record<string, string> = {
+  new: "Новобудова", renovated: "Після ремонту", good: "Хороший стан", needs_repair: "Потребує ремонту",
+};
+const heatingLabels: Record<string, string> = {
+  central: "Центральне опалення", individual: "Індивідуальне опалення", none: "Без опалення",
 };
 
-export default function LandingPage() {
-  const featuredListings = mockListings.filter((l) => l.status === "active").slice(0, 3);
+export default function ListingDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
+  const router = useRouter();
+  const { user } = useAuth();
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [isApplicationOpen, setIsApplicationOpen] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [applicationSubmitted, setApplicationSubmitted] = useState(false);
+
+  const listing = getListingById(resolvedParams.id);
+
+  if (!listing) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <SiteHeader />
+        <main className="flex flex-1 items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold">Оголошення не знайдено</h1>
+            <p className="mt-2 text-muted-foreground">Це оголошення може бути видалене або недоступне</p>
+            <Button className="mt-4" asChild><Link href="/catalog">Повернутись до каталогу</Link></Button>
+          </div>
+        </main>
+        <SiteFooter />
+      </div>
+    );
+  }
+
+  const owner = mockOwners.find((o) => o.id === listing.ownerId);
+  const nextPhoto = () => setCurrentPhotoIndex((prev) => prev === listing.photos.length - 1 ? 0 : prev + 1);
+  const prevPhoto = () => setCurrentPhotoIndex((prev) => prev === 0 ? listing.photos.length - 1 : prev - 1);
+  const handleApplicationSubmit = (data: ApplicationFormData) => { console.log("Application submitted:", data); setApplicationSubmitted(true); };
+  const canApply = user?.role === "seeker" && !applicationSubmitted;
 
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
-      
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="relative overflow-hidden bg-gradient-to-b from-secondary/50 to-background pt-8 pb-20 lg:pt-16 lg:pb-32">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="grid items-center gap-12 lg:grid-cols-2">
-              <div className="space-y-5">
-                <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm text-primary">
-                  <BadgeCheck className="h-4 w-4" />
-                  <span>Тільки верифіковані власники</span>
-                </div>
-                
-                <h1 className="text-balance text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-                  Знайдіть житло{" "}
-                  <span className="text-primary">напряму від власника</span>
-                </h1>
-                
-                <p className="max-w-xl text-pretty text-lg text-muted-foreground">
-                  DirectHomi — платформа для пошуку оренди та купівлі нерухомості без посередників. 
-                  Перевірені власники, прозорі умови, швидкі відповіді.
-                </p>
-                
-                <div className="flex flex-col gap-4 sm:flex-row">
-                  <Button size="lg" className="text-base font-semibold" asChild>
-                    <Link href="/catalog">
-                      <Search className="mr-2 h-5 w-5" />
-                      Знайти житло
-                    </Link>
-                  </Button>
-                  <Button size="lg" variant="outline" className="text-base font-semibold" asChild>
-                    <Link href="/register?role=owner">
-                      <Home className="mr-2 h-5 w-5" />
-                      Здати нерухомість
-                    </Link>
-                  </Button>
-                </div>
+        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+          <Button variant="ghost" size="sm" className="mb-4" onClick={() => router.back()}>
+            <ArrowLeft className="mr-2 h-4 w-4" />Назад
+          </Button>
 
-                <div className="flex flex-wrap items-center gap-2 pt-4">
-                  <span className="text-sm text-muted-foreground">Популярні міста:</span>
-                  {cities.slice(0, 5).map((city) => (
-                    <Link
-                      key={city}
-                      href={`/catalog?city=${city}`}
-                      className="rounded-full border border-border px-3 py-1 text-sm transition-colors hover:border-primary hover:text-primary"
-                    >
-                      {city}
-                    </Link>
-                  ))}
+          <div className="grid gap-8 lg:grid-cols-3">
+            {/* Main Content */}
+            <div className="space-y-6 lg:col-span-2">
+              {/* Photo Gallery */}
+              <div className="relative overflow-hidden rounded-xl">
+                <div className="relative aspect-[16/10]">
+                  <Image src={listing.photos[currentPhotoIndex]} alt={`${listing.title} - фото ${currentPhotoIndex + 1}`} fill className="object-cover" priority />
+                  {listing.photos.length > 1 && (
+                    <>
+                      <button onClick={prevPhoto} className="absolute left-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-background/80 text-foreground backdrop-blur-sm transition-colors hover:bg-background">
+                        <ChevronLeft className="h-6 w-6" />
+                      </button>
+                      <button onClick={nextPhoto} className="absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-background/80 text-foreground backdrop-blur-sm transition-colors hover:bg-background">
+                        <ChevronRight className="h-6 w-6" />
+                      </button>
+                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-background/80 px-3 py-1 text-sm backdrop-blur-sm">
+                        {currentPhotoIndex + 1} / {listing.photos.length}
+                      </div>
+                    </>
+                  )}
+                </div>
+                {listing.photos.length > 1 && (
+                  <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
+                    {listing.photos.map((photo, index) => (
+                      <button key={index} onClick={() => setCurrentPhotoIndex(index)} className={cn("relative h-16 w-24 shrink-0 overflow-hidden rounded-md", index === currentPhotoIndex && "ring-2 ring-primary")}>
+                        <Image src={photo} alt={`Мініатюра ${index + 1}`} fill className="object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Title & Badges */}
+              <div>
+                <div className="mb-3 flex flex-wrap gap-2">
+                  <Badge variant="secondary">{listingTypeLabels[listing.type]}</Badge>
+                  <Badge variant="outline">{propertyTypeLabels[listing.propertyType]}</Badge>
+                  {listing.isOwnerVerified && (
+                    <Badge className="bg-primary"><BadgeCheck className="mr-1 h-3 w-3" />Власник верифікований</Badge>
+                  )}
+                </div>
+                <h1 className="text-2xl font-bold sm:text-3xl">{listing.title}</h1>
+                <div className="mt-2 flex items-center gap-1 text-muted-foreground">
+                  <MapPin className="h-4 w-4" />
+                  <span>{listing.address.city}, {listing.address.district}, {listing.address.street} {listing.address.buildingNumber}{listing.address.apartmentNumber && `, кв. ${listing.address.apartmentNumber}`}</span>
                 </div>
               </div>
 
-              <div className="relative hidden lg:block">
-                <div className="relative aspect-[4/3] overflow-hidden rounded-2xl shadow-2xl">
-                  <Image
-                    src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800"
-                    alt="Сучасна квартира"
-                    fill
-                    className="object-cover"
-                    priority
-                  />
-                </div>
-                <div className="absolute -bottom-6 -left-6 rounded-xl bg-card p-4 shadow-lg">
+              {/* Quick Info */}
+              <div className="flex flex-wrap gap-6 rounded-lg bg-muted/50 p-4">
+                <div className="flex items-center gap-2"><Home className="h-5 w-5 text-muted-foreground" /><span className="font-medium">{listing.features.rooms} кімн.</span></div>
+                <div className="flex items-center gap-2"><Maximize className="h-5 w-5 text-muted-foreground" /><span className="font-medium">{listing.features.area} м²</span></div>
+                {listing.address.floor && (
+                  <div className="flex items-center gap-2"><span className="text-muted-foreground">Поверх:</span><span className="font-medium">{listing.address.floor} з {listing.address.totalFloors}</span></div>
+                )}
+                <div className="flex items-center gap-2"><Calendar className="h-5 w-5 text-muted-foreground" /><span className="text-sm text-muted-foreground">Додано {formatDate(listing.createdAt)}</span></div>
+              </div>
+
+              {/* Description */}
+              <Card>
+                <CardHeader><CardTitle>Опис</CardTitle></CardHeader>
+                <CardContent><p className="whitespace-pre-line text-muted-foreground">{listing.description}</p></CardContent>
+              </Card>
+
+              {/* Features */}
+              <Card>
+                <CardHeader><CardTitle>Характеристики</CardTitle></CardHeader>
+                <CardContent>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="flex items-center gap-3"><Hammer className="h-5 w-5 text-muted-foreground" /><div><p className="text-sm text-muted-foreground">Стан</p><p className="font-medium">{conditionLabels[listing.features.condition]}</p></div></div>
+                    <div className="flex items-center gap-3"><ThermometerSun className="h-5 w-5 text-muted-foreground" /><div><p className="text-sm text-muted-foreground">Опалення</p><p className="font-medium">{heatingLabels[listing.features.heatingType]}</p></div></div>
+                  </div>
+                  <Separator className="my-4" />
+                  <div className="flex flex-wrap gap-3">
+                    {listing.features.hasBalcony && <Badge variant="outline">Балкон</Badge>}
+                    {listing.features.hasParking && <Badge variant="outline"><Car className="h-3 w-3 mr-1" />Паркінг</Badge>}
+                    {listing.features.hasFurniture && <Badge variant="outline"><Sofa className="h-3 w-3 mr-1" />З меблями</Badge>}
+                    {listing.features.hasAppliances && <Badge variant="outline">З технікою</Badge>}
+                  </div>
+                  <Separator className="my-4" />
+                  <div className="flex flex-wrap gap-3">
+                    <Badge variant={listing.features.petsAllowed ? "default" : "secondary"} className={cn("gap-1", listing.features.petsAllowed ? "bg-emerald-500" : "bg-destructive/10 text-destructive")}>
+                      <Dog className="h-3 w-3" />{listing.features.petsAllowed ? "Можна з тваринами" : "Без тварин"}
+                    </Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Sidebar */}
+            <div className="space-y-6">
+              <Card className="sticky top-24">
+                <CardContent className="pt-6">
+                  <div className="mb-4">
+                    <p className="text-3xl font-bold text-primary">
+                      {formatPrice(listing.price)}
+                      {listing.type === "rent" && <span className="text-lg font-normal text-muted-foreground">/міс</span>}
+                    </p>
+                    {listing.deposit && <p className="mt-1 text-sm text-muted-foreground">Депозит: {formatPrice(listing.deposit)}</p>}
+                    {listing.commission && <p className="text-sm text-muted-foreground">Комісія: {formatPrice(listing.commission)}</p>}
+                  </div>
+                  <Separator className="my-4" />
+                  <div className="mb-4">
+                    <p className="text-sm text-muted-foreground">Власник</p>
+                    <div className="mt-2 flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary"><Users className="h-5 w-5" /></div>
+                      <div>
+                        <p className="font-medium">{listing.ownerName}</p>
+                        {owner && <p className="text-xs text-muted-foreground">Відповідає на {owner.responseRate}% заявок</p>}
+                      </div>
+                    </div>
+                  </div>
+
+                  {canApply ? (
+                    <Button className="w-full" size="lg" onClick={() => setIsApplicationOpen(true)}>
+                      <Send className="mr-2 h-4 w-4" />Подати заявку
+                    </Button>
+                  ) : applicationSubmitted ? (
+                    <Alert className="bg-emerald-50 border-emerald-200">
+                      <AlertDescription className="text-emerald-700">Заявку подано! Очікуйте відповіді власника протягом 72 годин.</AlertDescription>
+                    </Alert>
+                  ) : !user ? (
+                    <div className="space-y-2">
+                      <Button className="w-full" size="lg" asChild><Link href="/login">Увійти для подачі заявки</Link></Button>
+                      <p className="text-center text-xs text-muted-foreground">або <Link href="/register" className="text-primary underline">зареєструватись</Link></p>
+                    </div>
+                  ) : user.role === "owner" ? (
+                    <Alert><AlertTriangle className="h-4 w-4" /><AlertDescription>Власники не можуть подавати заявки на оголошення</AlertDescription></Alert>
+                  ) : null}
+
+                  {/* PDF Contract */}
+                  <div className="mt-4 space-y-1">
+                    <a href="/contract-template.pdf" download="DirectHomi-договір-оренди.pdf"
+                      className="flex w-full items-center justify-center gap-2 rounded-md border border-primary px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10">
+                      Завантажити шаблон договору оренди
+                    </a>
+                    <p className="text-xs text-muted-foreground text-center">DirectHomi не є стороною угоди.</p>
+                  </div>
+
+                  <div className="mt-4 flex gap-2">
+                    <Button variant="outline" className="flex-1" onClick={() => setIsSaved(!isSaved)}>
+                      <Heart className={cn("mr-2 h-4 w-4", isSaved && "fill-current text-destructive")} />{isSaved ? "Збережено" : "Зберегти"}
+                    </Button>
+                    <Button variant="outline" size="icon"><Share2 className="h-4 w-4" /></Button>
+                  </div>
+                  <Separator className="my-4" />
+                  <Button variant="ghost" size="sm" className="w-full text-muted-foreground">
+                    <Flag className="mr-2 h-4 w-4" />Поскаржитись на оголошення
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="text-xs">DirectHomi не є стороною угоди між вами та власником. Перевіряйте всі документи та умови перед укладанням договору.</AlertDescription>
+              </Alert>
+
+              {/* Support Chat */}
+              <Card>
+                <CardContent className="pt-4">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                      <TrendingUp className="h-6 w-6 text-primary" />
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                      <MessageCircle className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold">+45%</p>
-                      <p className="text-sm text-muted-foreground">нових оголошень</p>
+                      <p className="text-sm font-medium">Потрібна допомога?</p>
+                      <p className="text-xs text-muted-foreground">Зв&apos;яжіться з підтримкою</p>
                     </div>
+                    <Button size="sm" variant="outline" className="ml-auto">Чат</Button>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
-        </section>
-
-        {/* Stats Section */}
-        <section className="border-y border-border bg-muted/30 py-12">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
-              {stats.map((stat) => (
-                <div key={stat.label} className="text-center">
-                  <p className="text-3xl font-bold text-primary md:text-4xl">{stat.value}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">{stat.label}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Featured Listings */}
-        <section className="py-20">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-3xl font-bold tracking-tight">Нові оголошення</h2>
-                <p className="mt-2 text-muted-foreground">
-                  Перегляньте найновіші пропозиції від верифікованих власників
-                </p>
-              </div>
-              <Button variant="outline" asChild className="hidden sm:flex">
-                <Link href="/catalog">
-                  Всі оголошення
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {featuredListings.map((listing) => (
-                <PropertyCard key={listing.id} listing={listing} />
-              ))}
-            </div>
-            <div className="mt-8 text-center sm:hidden">
-              <Button variant="outline" asChild>
-                <Link href="/catalog">
-                  Всі оголошення
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </section>
-
-        {/* Features Section */}
-        <section className="bg-muted/30 py-20">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                Чому обирають DirectHomi
-              </h2>
-              <p className="mt-4 text-lg text-muted-foreground">
-                Ми створили платформу, яка захищає інтереси обох сторін
-              </p>
-            </div>
-            <div className="mt-16 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-              {features.map((feature) => (
-                <Card key={feature.title} className="border-0 bg-background">
-                  <CardContent className="pt-6">
-                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                      <feature.icon className="h-6 w-6 text-primary" />
-                    </div>
-                    <h3 className="mb-2 text-lg font-semibold">{feature.title}</h3>
-                    <p className="text-sm text-muted-foreground">{feature.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* How It Works */}
-        <section className="py-20">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Як це працює</h2>
-              <p className="mt-4 text-lg text-muted-foreground">
-                Простий та прозорий процес для шукачів та власників
-              </p>
-            </div>
-            <div className="mt-16 grid gap-12 lg:grid-cols-2">
-              <div className="space-y-5">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                    <Users className="h-5 w-5" />
-                  </div>
-                  <h3 className="text-xl font-semibold">Для шукачів житла</h3>
-                </div>
-                <div className="space-y-4">
-                  {howItWorks.seeker.map((item) => (
-                    <div key={item.step} className="flex gap-4">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-primary text-sm font-medium text-primary">
-                        {item.step}
-                      </div>
-                      <div>
-                        <h4 className="font-medium">{item.title}</h4>
-                        <p className="text-sm text-muted-foreground">{item.description}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <Button asChild>
-                  <Link href="/register?role=seeker">
-                    Почати пошук
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
-
-              <div className="space-y-5">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-accent-foreground">
-                    <Home className="h-5 w-5" />
-                  </div>
-                  <h3 className="text-xl font-semibold">Для власників</h3>
-                </div>
-                <div className="space-y-4">
-                  {howItWorks.owner.map((item) => (
-                    <div key={item.step} className="flex gap-4">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-accent text-sm font-medium text-accent-foreground">
-                        {item.step}
-                      </div>
-                      <div>
-                        <h4 className="font-medium">{item.title}</h4>
-                        <p className="text-sm text-muted-foreground">{item.description}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <Button variant="outline" asChild>
-                  <Link href="/register?role=owner">
-                    Додати оголошення
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="bg-primary py-20 text-primary-foreground">
-          <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Готові знайти ідеальне житло?
-            </h2>
-            <p className="mt-4 text-lg text-primary-foreground/80">
-              Приєднуйтесь до тисяч користувачів, які вже знайшли житло через DirectHomi
-            </p>
-            <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
-              <Button size="lg" variant="secondary" asChild>
-                <Link href="/catalog">
-                  <Search className="mr-2 h-5 w-5" />
-                  Переглянути каталог
-                </Link>
-              </Button>
-              <Button size="lg" className="bg-white text-primary hover:bg-white/90 font-semibold" asChild>
-                <Link href="/register">
-                  Зареєструватись
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </section>
-
-        {/* Platform Disclaimer */}
-        <section className="border-t border-border bg-muted/30 py-8">
-          <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
-            <p className="text-sm text-muted-foreground">
-              <strong>Важливо:</strong> DirectHomi є платформою для зв&apos;язку власників нерухомості та шукачів житла. 
-              Ми не є стороною угод і не несемо відповідальності за дії користувачів. 
-              Всі операції здійснюються напряму між сторонами.
-            </p>
-          </div>
-        </section>
+        </div>
       </main>
-
       <SiteFooter />
+      <ApplicationForm listing={listing} open={isApplicationOpen} onOpenChange={setIsApplicationOpen} onSubmit={handleApplicationSubmit} />
     </div>
   );
 }

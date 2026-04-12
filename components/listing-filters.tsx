@@ -111,8 +111,9 @@ export function ListingFiltersComponent({ filters, onFiltersChange, onSearch }: 
       {isOpen && (
         <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+
             <div className="space-y-2">
-              <label className="text-sm font-medium">🏙 Місто</label>
+              <label className="text-sm font-medium">Місто</label>
               <select
                 value={localFilters.city || ""}
                 onChange={(e) => updateLocalFilter("city", e.target.value || undefined)}
@@ -126,7 +127,7 @@ export function ListingFiltersComponent({ filters, onFiltersChange, onSearch }: 
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">🏷 Тип угоди</label>
+              <label className="text-sm font-medium">Тип угоди</label>
               <div className="flex gap-2">
                 {listingTypes.map((type) => (
                   <button key={type.value} type="button"
@@ -139,7 +140,7 @@ export function ListingFiltersComponent({ filters, onFiltersChange, onSearch }: 
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">🏠 Тип нерухомості</label>
+              <label className="text-sm font-medium">Тип нерухомості</label>
               <div className="grid grid-cols-2 gap-2">
                 {propertyTypes.map((type) => (
                   <button key={type.value} type="button"
@@ -152,7 +153,7 @@ export function ListingFiltersComponent({ filters, onFiltersChange, onSearch }: 
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">💰 Бюджет (грн)</label>
+              <label className="text-sm font-medium">Бюджет (грн)</label>
               <div className="flex items-center gap-2">
                 <input type="number" placeholder="Від" value={localFilters.priceMin || ""}
                   onChange={(e) => updateLocalFilter("priceMin", e.target.value ? parseInt(e.target.value) : undefined)}
@@ -165,7 +166,7 @@ export function ListingFiltersComponent({ filters, onFiltersChange, onSearch }: 
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">📐 Площа (м²)</label>
+              <label className="text-sm font-medium">Площа (м²)</label>
               <div className="flex items-center gap-2">
                 <input type="number" placeholder="Від" value={localFilters.areaMin || ""}
                   onChange={(e) => updateLocalFilter("areaMin", e.target.value ? parseInt(e.target.value) : undefined)}
@@ -178,7 +179,7 @@ export function ListingFiltersComponent({ filters, onFiltersChange, onSearch }: 
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">🛏 Кількість кімнат</label>
+              <label className="text-sm font-medium">Кількість кімнат</label>
               <div className="flex gap-2">
                 {bedroomOptions.map((opt) => (
                   <button key={opt} type="button" onClick={() => toggleBedroom(opt)}
@@ -190,9 +191,9 @@ export function ListingFiltersComponent({ filters, onFiltersChange, onSearch }: 
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">🐾 Тварини</label>
+              <label className="text-sm font-medium">Тварини</label>
               <div className="flex gap-2">
-                {[{ value: "all", label: "Всі" }, { value: "yes", label: "✅ Так" }, { value: "no", label: "❌ Ні" }].map((opt) => (
+                {[{ value: "all", label: "Всі" }, { value: "yes", label: "Так" }, { value: "no", label: "Ні" }].map((opt) => (
                   <button key={opt.value} type="button"
                     onClick={() => setPetsFilter(opt.value as "all" | "yes" | "no")}
                     className={btnClass(petsFilter === opt.value)}>
@@ -203,7 +204,7 @@ export function ListingFiltersComponent({ filters, onFiltersChange, onSearch }: 
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">📅 Дата заїзду</label>
+              <label className="text-sm font-medium">Дата заїзду</label>
               <input type="date" value={moveInDate} onChange={(e) => setMoveInDate(e.target.value)}
                 className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm" />
             </div>
@@ -214,7 +215,7 @@ export function ListingFiltersComponent({ filters, onFiltersChange, onSearch }: 
                 onChange={(e) => updateLocalFilter("verifiedOwnerOnly", e.target.checked ? true : undefined)}
                 className="h-4 w-4 cursor-pointer" />
               <label htmlFor="verifiedOwnerOnly" className="text-sm font-medium cursor-pointer">
-                ✅ Тільки верифіковані власники
+                Тільки верифіковані власники
               </label>
             </div>
           </div>
