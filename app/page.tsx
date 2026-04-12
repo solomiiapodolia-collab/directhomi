@@ -231,7 +231,7 @@ export default function LandingPage() {
               </p>
             </div>
             <div className="mt-16 grid gap-12 lg:grid-cols-2">
-              <div className="space-y-6">
+              <div className="space-y-5">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
                     <Users className="h-5 w-5" />
