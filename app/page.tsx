@@ -73,7 +73,7 @@ export default function LandingPage() {
       
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative overflow-hidden bg-gradient-to-b from-secondary/50 to-background py-20 lg:py-32">
+        <section className="relative overflow-hidden bg-gradient-to-b from-secondary/50 to-background pt-8 pb-20 lg:pt-16 lg:pb-32">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid items-center gap-12 lg:grid-cols-2">
               <div className="space-y-5">
