@@ -76,7 +76,7 @@ export default function LandingPage() {
         <section className="relative overflow-hidden bg-gradient-to-b from-secondary/50 to-background py-20 lg:py-32">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid items-center gap-12 lg:grid-cols-2">
-              <div className="space-y-6">
+              <div className="space-y-5">
                 <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm text-primary">
                   <BadgeCheck className="h-4 w-4" />
                   <span>Тільки верифіковані власники</span>
@@ -259,7 +259,7 @@ export default function LandingPage() {
                 </Button>
               </div>
 
-              <div className="space-y-6">
+              <div className="space-y-5">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-accent-foreground">
                     <Home className="h-5 w-5" />
