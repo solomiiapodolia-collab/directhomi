@@ -13,10 +13,8 @@ const footerLinks = {
     { href: "/privacy", label: "Політика конфіденційності" },
     { href: "/rules", label: "Правила платформи" },
   ],
-  support: [
-    { href: "/contact", label: "Зв'язатися з нами" },
+support: [
     { href: "/report", label: "Повідомити про проблему" },
-    { href: "/help", label: "Центр допомоги" },
   ],
 };
 
