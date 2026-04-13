@@ -125,8 +125,14 @@ export default function PricingPage() {
               <Link href="/register?role=owner">Додати оголошення</Link>
             </Button>
           </div>
-        </div>
-      </main>
+
+          {/* Payment Disclaimer */}
+          <div className="mt-8 rounded-lg border border-border p-4 text-center">
+            <p className="text-xs text-muted-foreground">
+              Оплата здійснюється виключно за доступ до додаткового функціоналу платформи. 
+              DirectHomi не гарантує укладення угоди або отримання відповіді від власника.
+            </p>
+          </div>
 
       <SiteFooter />
     </div>

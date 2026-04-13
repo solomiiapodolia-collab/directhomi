@@ -220,13 +220,13 @@ function RegisterForm() {
                 onCheckedChange={(checked) => setAcceptedTerms(!!checked)}
               />
               <label htmlFor="terms" className="text-sm leading-tight text-muted-foreground">
-                Я приймаю{" "}
+               Я погоджуюсь з{" "}
                 <Link href="/terms" className="text-primary underline">
-                  Умови використання
+                  Умовами використання
                 </Link>{" "}
                 та{" "}
                 <Link href="/privacy" className="text-primary underline">
-                  Політику конфіденційності
+                  Політикою конфіденційності
                 </Link>
               </label>
             </div>
