@@ -92,6 +92,23 @@ export default function PricingPage() {
               </div>
             </div>
           </div>
+
+          <div className="mt-16 rounded-xl bg-muted/50 p-8 text-center">
+            <h2 className="text-xl font-bold">Ви власник нерухомості?</h2>
+            <p className="mt-2 text-muted-foreground">
+              Публікація оголошень на DirectHomi абсолютно безкоштовна для власників
+            </p>
+            <Button className="mt-4" asChild>
+              <Link href="/register?role=owner">Додати оголошення</Link>
+            </Button>
+          </div>
+
+          <div className="mt-8 rounded-lg border border-border p-4 text-center">
+            <p className="text-xs text-muted-foreground">
+              Оплата здійснюється виключно за доступ до додаткового функціоналу платформи.
+              DirectHomi не гарантує укладення угоди або отримання відповіді від власника.
+            </p>
+          </div>
         </div>
       </main>
       <SiteFooter />
