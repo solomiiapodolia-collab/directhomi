@@ -232,7 +232,7 @@ export default function HowItWorksPage() {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-primary" asChild>
+              <Button size="lg" className="bg-white text-primary hover:bg-white/90" asChild>
                 <Link href="/catalog">
                   Переглянути оголошення
                 </Link>
