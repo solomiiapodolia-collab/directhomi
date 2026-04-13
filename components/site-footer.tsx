@@ -95,8 +95,7 @@ export function SiteFooter() {
               &copy; {new Date().getFullYear()} DirectHomi. Всі права захищені.
             </p>
             <p className="text-xs text-muted-foreground">
-              DirectHomi не є стороною угод між власниками та шукачами житла.
-              Всі операції здійснюються напряму між користувачами.
+              DirectHomi — це платформа для оголошень. Ми не є стороною угод і не несемо відповідальності за домовленості між користувачами.
             </p>
           </div>
         </div>
